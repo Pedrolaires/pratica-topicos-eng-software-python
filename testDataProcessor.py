@@ -1,6 +1,6 @@
 import os
 import unittest
-from dataProcessor import read_json_file, avgAgeCountry, most_common_name_by_country
+from dataProcessor import read_json_file, avgAgeCountry, most_common_name_by_country, age_pyramid
 
 class TestDataProcessor(unittest.TestCase):
     def test_read_json_file_success(self):
@@ -43,13 +43,21 @@ class TestDataProcessor(unittest.TestCase):
             self.assertNotEqual(person["country"], "", f"Country is empty for {person}")
             self.assertIsNotNone(person["age"], f"Age is None for {person}")
 
-    def test_avg_age_by_ountry(self):
+    def test_avg_age_by_country(self):
         current_directory = os.path.dirname(__file__)
         file_path = os.path.join(current_directory, "./data/users.json")
         data = read_json_file(file_path)
         avg_age = avgAgeCountry(data, "BR", lambda x: x)
 
         self.assertEqual(avg_age, 38.30769230769231, "Média brasileira de idade deve ser de 38.30769230769231")
+    
+    def test_avg_age_by_country_missing_age(self):
+        current_directory = os.path.dirname(__file__)
+        file_path = os.path.join(current_directory, "./data/users_missing_data.json")
+        data = read_json_file(file_path)
+        avg_age = avgAgeCountry(data, "UK", lambda x: x)
+
+        self.assertEqual(avg_age, 28.5)
 
     def test_avg_age_nonexistent_country(self):
         current_directory = os.path.dirname(__file__)
@@ -90,6 +98,29 @@ class TestDataProcessor(unittest.TestCase):
         data = read_json_file(file_path)
         last_name = most_common_name_by_country("UK", data, lambda x: x.split(" ")[1])
         self.assertEqual(last_name, "Johnson", "O sobrenome mais comum no Reino Unido é Johnson")
+
+
+    def test_age_pyramid(self):
+        current_directory = os.path.dirname(__file__)
+        file_path = os.path.join(current_directory, "./data/users.json")
+        data = read_json_file(file_path)
+        pyramid = age_pyramid("UK", data, lambda x: x)
+        self.assertEqual(pyramid, [0, 15, 44, 34, 40, 40, 0, 0, 0, 0, 0], "A pirâmide etária do Reino Unido deve ser [0, 15, 44, 34, 40, 40, 0, 0, 0, 0]")
+
+    def test_age_pyramid_missing_age_json(self):
+        current_directory = os.path.dirname(__file__)
+        file_path = os.path.join(current_directory, "./data/users_missing_data.json")
+        data = read_json_file(file_path)
+        pyramid = age_pyramid("UK", data, lambda x: x)
+        self.assertEqual(pyramid, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0])
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
